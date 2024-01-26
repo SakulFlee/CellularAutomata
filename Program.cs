@@ -109,61 +109,35 @@ char[,] AreaNeighbours(char[,] grid, uint x, uint y, uint area)
         grid[x, y] = $"{area}".ToCharArray()[0];
     }
 
-    var tileN = GetCell(grid, x + 1, y);
+    var tileN = GetCell(grid, x - 1, y);
     if (tileN != null && tileN == FLOOR)
-    {
-        grid[x + 1, y] = $"{area}".ToCharArray()[0];
-        grid = AreaNeighbours(grid, x + 1, y, area);
-    }
-
-    var selfS = GetCell(grid, x - 1, y);
-    if (selfS != null && selfS == FLOOR)
     {
         grid[x - 1, y] = $"{area}".ToCharArray()[0];
         grid = AreaNeighbours(grid, x - 1, y, area);
     }
 
-    var selfE = GetCell(grid, x, y - 1);
-    if (selfE != null && selfE == FLOOR)
+    var tileS = GetCell(grid, x + 1, y);
+    if (tileS != null && tileS == FLOOR)
+    {
+        grid[x + 1, y] = $"{area}".ToCharArray()[0];
+        grid = AreaNeighbours(grid, x + 1, y, area);
+    }
+
+    var tileE = GetCell(grid, x, y - 1);
+    if (tileE != null && tileE == FLOOR)
     {
         grid[x, y - 1] = $"{area}".ToCharArray()[0];
         grid = AreaNeighbours(grid, x, y - 1, area);
     }
 
-    var selfW = GetCell(grid, x, y + 1);
-    if (selfW != null && selfW == FLOOR)
+    var tileW = GetCell(grid, x, y + 1);
+    if (tileW != null && tileW == FLOOR)
     {
         grid[x, y + 1] = $"{area}".ToCharArray()[0];
-        grid = AreaNeighbours(grid, x, y + 1, area);
+        grid = AreaNeighbours(grid, x, y + );
     }
 
-    var tileNE = GetCell(grid, x + 1, y - 1);
-    if (tileNE != null && tileNE == FLOOR)
-    {
-        grid[x + 1, y - 1] = $"{area}".ToCharArray()[0];
-        grid = AreaNeighbours(grid, x + 1, y - 1, area);
-    }
-
-    var tileNW = GetCell(grid, x + 1, y + 1);
-    if (tileNW != null && tileNW == FLOOR)
-    {
-        grid[x + 1, y + 1] = $"{area}".ToCharArray()[0];
-        grid = AreaNeighbours(grid, x + 1, y + 1, area);
-    }
-
-    var selfSE = GetCell(grid, x - 1, y - 1);
-    if (selfSE != null && selfSE == FLOOR)
-    {
-        grid[x - 1, y - 1] = $"{area}".ToCharArray()[0];
-        grid = AreaNeighbours(grid, x - 1, y - 1, area);
-    }
-
-    var selfSW = GetCell(grid, x - 1, y + 1);
-    if (selfSW != null && selfSW == FLOOR)
-    {
-        grid[x - 1, y + 1] = $"{area}".ToCharArray()[0];
-        grid = AreaNeighbours(grid, x - 1, y + 1, area);
-    }
+    if (
 
     return grid;
 }
