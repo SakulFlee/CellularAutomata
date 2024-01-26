@@ -134,10 +134,8 @@ char[,] AreaNeighbours(char[,] grid, uint x, uint y, uint area)
     if (tileW != null && tileW == FLOOR)
     {
         grid[x, y + 1] = $"{area}".ToCharArray()[0];
-        grid = AreaNeighbours(grid, x, y + );
+        grid = AreaNeighbours(grid, x, y + 1, area);
     }
-
-    if (
 
     return grid;
 }
