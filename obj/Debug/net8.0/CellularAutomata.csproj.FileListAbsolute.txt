@@ -1,0 +1,14 @@
+C:\Users\me\OneDrive\Desktop\CellularAutomata\bin\Debug\net8.0\CellularAutomata.exe
+C:\Users\me\OneDrive\Desktop\CellularAutomata\bin\Debug\net8.0\CellularAutomata.deps.json
+C:\Users\me\OneDrive\Desktop\CellularAutomata\bin\Debug\net8.0\CellularAutomata.runtimeconfig.json
+C:\Users\me\OneDrive\Desktop\CellularAutomata\bin\Debug\net8.0\CellularAutomata.dll
+C:\Users\me\OneDrive\Desktop\CellularAutomata\bin\Debug\net8.0\CellularAutomata.pdb
+C:\Users\me\OneDrive\Desktop\CellularAutomata\obj\Debug\net8.0\CellularAutomata.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\me\OneDrive\Desktop\CellularAutomata\obj\Debug\net8.0\CellularAutomata.AssemblyInfoInputs.cache
+C:\Users\me\OneDrive\Desktop\CellularAutomata\obj\Debug\net8.0\CellularAutomata.AssemblyInfo.cs
+C:\Users\me\OneDrive\Desktop\CellularAutomata\obj\Debug\net8.0\CellularAutomata.csproj.CoreCompileInputs.cache
+C:\Users\me\OneDrive\Desktop\CellularAutomata\obj\Debug\net8.0\CellularAutomata.dll
+C:\Users\me\OneDrive\Desktop\CellularAutomata\obj\Debug\net8.0\refint\CellularAutomata.dll
+C:\Users\me\OneDrive\Desktop\CellularAutomata\obj\Debug\net8.0\CellularAutomata.pdb
+C:\Users\me\OneDrive\Desktop\CellularAutomata\obj\Debug\net8.0\CellularAutomata.genruntimeconfig.cache
+C:\Users\me\OneDrive\Desktop\CellularAutomata\obj\Debug\net8.0\ref\CellularAutomata.dll
