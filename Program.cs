@@ -204,3 +204,31 @@ Console.Write($"\n\n\n---\n\n\n");
 
 var areaMapGrid = MakeAreaMap(grid);
 print(areaMapGrid);
+
+// ---
+
+var gridGenerator = new GridGenerator((70, 70));
+gridGenerator.PrintToConsole();
+gridGenerator.PerformAutomataRepetitive(printStepsToConsole: true);
+gridGenerator.AssignAreas(printStepsToConsole: true);
+
+Console.WriteLine($"Highest area number: {gridGenerator.HighestArea}");
+
+uint largestAreaNumber = 0;
+uint largestAreaCount = 0;
+
+for (uint i = 1; i <= gridGenerator.HighestArea; i++)
+{
+    var cellCount = (uint)gridGenerator.FindCellOfArea(i).Count();
+    Console.WriteLine($"Area #{i}: {cellCount} cells in size");
+
+    if (cellCount > largestAreaCount)
+    {
+        largestAreaCount = cellCount;
+        largestAreaNumber = i;
+    }
+}
+
+Console.WriteLine($"Largest area is #{largestAreaNumber} with {largestAreaCount} cells!");
+
+// TODO: Room placements!
