@@ -1,3 +1,5 @@
+using System.Text;
+
 public class GridGenerator
 {
     public uint MinimumNeighbourWallsForFloor = 4;
@@ -9,7 +11,7 @@ public class GridGenerator
 
     public uint HighestArea { get; private set; } = 0;
 
-    public GridGenerator((uint, uint) gridSize, int seed = 12345, double floorPercentage = 0.60)
+    public GridGenerator((uint, uint) gridSize, int seed = 12345, double floorPercentage = 0.60, bool printToConsole = false)
     {
         R = new Random(seed);
 
@@ -19,9 +21,73 @@ public class GridGenerator
                 Grid[x, y] = R.NextDouble() <= floorPercentage
                     ? new GridCell(GridType.Floor)
                     : new GridCell(GridType.Wall);
+
+        if (printToConsole)
+        {
+            Console.WriteLine(">>> Randomized Grid:");
+            PrintToConsole();
+        }
     }
 
-    public void PerformAutomataRepetitive(int steps = 5, bool printStepsToConsole = true)
+    public void ApplyRooms(List<IGridRoom> rooms, bool findDoorways = false, bool fixAreas = false, bool printToConsole = false, bool printWithArea = true)
+    {
+        foreach (var room in rooms)
+        {
+            Grid = room.Apply(Grid, findDoorways);
+        }
+
+        if (fixAreas) FixAreas();
+
+        if (printToConsole)
+        {
+            Console.WriteLine(">>> Applied rooms:");
+            PrintToConsole(printWithArea);
+        }
+    }
+
+    public void FixAreas()
+    {
+        var floorsWithoutAreaList = FindCell((x, y, cell) => cell.Type == GridType.Floor && cell.Area == 0);
+        var floorsWithoutArea = new Queue<(uint, uint)>(floorsWithoutAreaList.Count());
+        foreach (var a in floorsWithoutAreaList) floorsWithoutArea.Enqueue(a);
+
+        while (floorsWithoutArea.Count() > 0)
+        {
+            var cellPosition = floorsWithoutArea.Dequeue();
+
+            var cellN = GetCell((cellPosition.Item1 - 1, cellPosition.Item2));
+            if (cellN != null && cellN.Area > 0)
+            {
+                Grid[cellPosition.Item1, cellPosition.Item2].Area = cellN.Area;
+                continue;
+            }
+
+            var cellS = GetCell((cellPosition.Item1 + 1, cellPosition.Item2));
+            if (cellS != null && cellS.Area > 0)
+            {
+                Grid[cellPosition.Item1, cellPosition.Item2].Area = cellS.Area;
+                continue;
+            }
+
+            var cellE = GetCell((cellPosition.Item1, cellPosition.Item2 - 1));
+            if (cellE != null && cellE.Area > 0)
+            {
+                Grid[cellPosition.Item1, cellPosition.Item2].Area = cellE.Area;
+                continue;
+            }
+
+            var cellW = GetCell((cellPosition.Item1, cellPosition.Item2 + 1));
+            if (cellW != null && cellW.Area > 0)
+            {
+                Grid[cellPosition.Item1, cellPosition.Item2].Area = cellW.Area;
+                continue;
+            }
+
+            floorsWithoutArea.Enqueue(cellPosition);
+        }
+    }
+
+    public void PerformAutomataRepetitive(int steps = 5, bool printStepsToConsole = false)
     {
         if (printStepsToConsole)
         {
@@ -33,8 +99,11 @@ public class GridGenerator
         {
             PerformAutomata();
 
-            Console.WriteLine($">>> Automata #{step}/{steps}:");
-            PrintToConsole();
+            if (printStepsToConsole)
+            {
+                Console.WriteLine($">>> Automata #{step}/{steps}:");
+                PrintToConsole();
+            }
         }
     }
 
@@ -51,7 +120,7 @@ public class GridGenerator
         Grid = outputGrid;
     }
 
-    public void AssignAreas(bool printStepsToConsole = true)
+    public void AssignAreas(bool printStepsToConsole = false)
     {
         uint area = 1;
 
@@ -155,10 +224,12 @@ public class GridGenerator
         return FindCell((x, y, cell) => cell.Area == area);
     }
 
-    public GridCell? GetCell((uint, uint) position)
+    public GridCell? GetCell((uint, uint) position) => GetCell(Grid, position, ((uint)SizeX, (uint)SizeY));
+
+    public static GridCell? GetCell(GridCell[,] grid, (uint, uint) position, (uint, uint) size)
     {
-        if (position.Item1 < 0 || position.Item2 < 0 || position.Item1 >= SizeX || position.Item2 >= SizeY) return null;
-        else return Grid[position.Item1, position.Item2];
+        if (position.Item1 < 0 || position.Item2 < 0 || position.Item1 >= size.Item1 || position.Item2 >= size.Item2) return null;
+        else return grid[position.Item1, position.Item2];
     }
 
     public uint CountNeighboursOfType((uint, uint) position, GridType type, bool countNull = true)
@@ -205,6 +276,8 @@ public class GridGenerator
 
     public void PrintToConsole(bool printAreaMap = false)
     {
+        Console.OutputEncoding = Encoding.UTF8;
+
         var output = "";
         for (var x = 0; x < SizeX; x++)
         {
@@ -217,11 +290,15 @@ public class GridGenerator
                 else
                 {
                     var cell = Grid[x, y];
-                    if (cell.Type != GridType.Floor) output += cell.MakeConsoleString(2);
+                    if (cell.Type != GridType.Floor)
+                    {
+                        output += cell.MakeConsoleString(2);
+                    }
                     else
                     {
                         var area = cell.Area;
-                        if (area < 10) output += $"{area}{area}";
+                        if (area == 0) output += "AA"; // AREA isn't properly tracked!!!
+                        else if (area < 10) output += $"{area}{area}";
                         else output += $"{area}";
                     }
                 }

@@ -2,6 +2,7 @@ public enum GridType
 {
     Floor,
     Wall,
+    PossibleDoor
 }
 
 public static class GridTypeImpl
@@ -14,6 +15,8 @@ public static class GridTypeImpl
                 return ' ';
             case GridType.Wall:
                 return '█';
+            case GridType.PossibleDoor:
+                return '░';
             default:
                 return '╳';
         }
