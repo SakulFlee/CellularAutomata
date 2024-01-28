@@ -3,7 +3,7 @@ using System.Text;
 public class GridGenerator
 {
     public uint MinimumNeighbourWallsForFloor = 4;
-    public uint DesiredRoomCount = 25;
+    public uint DesiredRoomCount = 25;  // Maybe: Max Size / 3 ?
     public uint SmallAreaThresholdCells = 9;
 
     public Random R;
@@ -158,7 +158,7 @@ public class GridGenerator
                 (int)(maxSizeY < maxRoomSize ? maxSizeY : maxRoomSize)
             );
 
-            var room = new GridRoomRectangular((roomLocationX, roomLocationY), (roomSizeX, roomSizeY));
+            var room = new GridRoomRectangular((roomLocationX, roomLocationY), (roomSizeX, roomSizeY), (uint)output.Count() + 1);
             output.Add(room);
         }
 
@@ -420,7 +420,7 @@ public class GridGenerator
         for (var x = 0; x < SizeX; x++)
         {
             for (var y = 0; y < SizeY; y++)
-                output += Grid[x, y].GetCellString();
+                output += Grid[x, y].GetCellString(y % 2 == 0);
 
             output += "\n";
         }

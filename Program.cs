@@ -1,15 +1,8 @@
 ﻿const uint SizeX = 70;
 const uint SizeY = 70;
 
-var watch = System.Diagnostics.Stopwatch.StartNew();
-
 var gridGenerator = new GridGenerator((SizeX, SizeY));
-gridGenerator.Automate(printFinalResultToConsole: false);
-
-watch.Stop();
-Console.WriteLine($"Full generation took: {watch.ElapsedMilliseconds}ms!");
-
-gridGenerator.PrintToConsole();
+gridGenerator.Automate(printFinalResultToConsole: true);
 
 Console.WriteLine($"Highest area number: {gridGenerator.HighestArea}");
 uint largestAreaNumber = 0;

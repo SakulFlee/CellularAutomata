@@ -2,16 +2,15 @@ public class GridCell
 {
     public bool IsFloor { get; set; }
     public uint Area { get; set; } = 0;
+    public uint Room { get; set; } = 0;
     public bool CanBeDoor { get; set; } = false;
-
-    // TODO: Add room code
 
     public GridCell(bool isFloor)
     {
         IsFloor = isFloor;
     }
 
-    public string GetCellString()
+    public string GetCellString(bool alt = false)
     {
         if (!IsFloor)
             if (CanBeDoor)
@@ -19,19 +18,23 @@ public class GridCell
             else
                 return "██";
 
+        if (HasRoomData())
+        {
+            if (Room < 10)
+                return $"R{Room}";
+            else
+                return $"R{Convert.ToString(Room).ToCharArray()[alt ? 1 : 0]}";
+        }
+
         if (Area < 10)
-            return $"0{Area}";
-
-        return $"{Area}";
+            return $"A{Area}";
+        else
+            return $"A{Convert.ToString(Area).ToCharArray()[alt ? 1 : 0]}";
     }
 
-    public bool HasAreaData()
-    {
-        return Area > 0;
-    }
+    public bool HasAreaData() => Area > 0;
 
-    public override string ToString()
-    {
-        return $"GridCell [is Floor = {IsFloor}, Area = {Area}, can be Door = {CanBeDoor}]";
-    }
+    public bool HasRoomData() => Room > 0;
+
+    public override string ToString() => $"GridCell [is Floor = {IsFloor}, Area = {Area}, can be Door = {CanBeDoor}]";
 }

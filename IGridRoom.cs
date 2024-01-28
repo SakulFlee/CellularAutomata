@@ -6,6 +6,8 @@ public interface IGridRoom
 
     public GridRoomType GetType();
 
+    public uint GetRoomId();
+
     public bool IsInsideRoom((uint, uint) position)
     => position.Item1 >= GetPosition().Item1 &&
             position.Item2 >= GetPosition().Item2 &&
@@ -29,6 +31,8 @@ public interface IGridRoom
                 // Not on an edge, so floor
                 else
                     grid[actualX, actualY].IsFloor = true;
+
+                grid[actualX, actualY].Room = GetRoomId();
             }
 
         return grid;
