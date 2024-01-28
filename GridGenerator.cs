@@ -3,6 +3,8 @@ using System.Text;
 public class GridGenerator
 {
     public uint MinimumNeighbourWallsForFloor = 4;
+    public uint DesiredRoomCount = 25;
+    public uint SmallAreaThresholdCells = 9;
 
     public Random R;
     public GridCell[,] Grid { get; private set; }
@@ -29,19 +31,155 @@ public class GridGenerator
         }
     }
 
-    public void ApplyRooms(List<IGridRoom> rooms, bool findDoorways = false, bool fixAreas = false, bool printToConsole = false, bool printWithArea = true)
+    public void Automate(bool printAutomataStepsToConsole = false, bool printRoomToConsole = false, bool printAreasToConsole = false, bool printInvalidAreaFixToConsole = false, bool printDoorwaysToConsole = false, bool printFinalResultToConsole = false)
     {
-        foreach (var room in rooms)
+        PerformAutomataRepetitive(printStepsToConsole: printAutomataStepsToConsole);
+        PlaceRooms(printToConsole: printRoomToConsole);
+        AssignAreas(printStepsToConsole: printAreasToConsole);
+
+        FixInvalidAreas(printToConsole: printInvalidAreaFixToConsole);
+
+        CheckForDoorways(printToConsole: printDoorwaysToConsole);
+
+        if (printFinalResultToConsole) PrintToConsole();
+    }
+
+    public void CheckForDoorways(bool printToConsole = false)
+    {
+        for (uint x = 0; x < SizeX; x++)
+            for (uint y = 0; y < SizeY; y++)
+            {
+                // Skip floor tiles
+                if (Grid[x, y].Type == GridType.Floor) continue;
+
+                var cellN = GetCell((x - 1, y));
+                var cellS = GetCell((x + 1, y));
+                var cellE = GetCell((x, y + 1));
+                var cellW = GetCell((x, y - 1));
+
+                Grid[x, y].CanBeDoor = (cellN != null && cellN.Type == GridType.Floor
+                    && cellS != null && cellS.Type == GridType.Floor
+                    && cellE != null && cellE.Type != GridType.Floor
+                    && cellW != null && cellW.Type != GridType.Floor)
+                    ||
+                    (cellE != null && cellE.Type == GridType.Floor
+                    && cellW != null && cellW.Type == GridType.Floor
+                    && cellN != null && cellN.Type != GridType.Floor
+                    && cellS != null && cellS.Type != GridType.Floor);
+            }
+
+        if (printToConsole) PrintToConsole();
+    }
+
+    public void FixInvalidAreas(bool fixGridEdges = true, bool redoAreas = true, bool printToConsole = false)
+    {
+        if (fixGridEdges)
+            for (var x = 0; x < SizeX; x++)
+                for (var y = 0; y < SizeY; y++)
+                    if (x == 0 || y == 0 || x == SizeX - 1 || y == SizeY - 1)
+                        Grid[x, y] = new GridCell(GridType.Wall);
+
+        for (uint area = 1; area <= HighestArea; area++)
         {
-            Grid = room.Apply(Grid, findDoorways);
+            uint minX = int.MaxValue;
+            uint minY = int.MaxValue;
+            uint maxX = 0;
+            uint maxY = 0;
+
+            var cellsInArea = FindCellOfArea(area);
+            foreach (var (x, y) in cellsInArea)
+            {
+                if (x < minX)
+                {
+                    minX = x;
+                }
+                else if (y < minY)
+                {
+                    minY = y;
+                }
+                else if (x > maxX)
+                {
+                    maxX = x;
+                }
+                else if (y > maxY)
+                {
+                    maxY = y;
+                }
+            }
+
+            var removeArea = minX == int.MaxValue
+                || minY == int.MaxValue
+                || maxX == 0
+                || maxY == 0
+                || minX == maxX
+                || minY == maxY
+                || cellsInArea.Count() < SmallAreaThresholdCells;
+
+            if (removeArea)
+                foreach (var (x, y) in cellsInArea)
+                    Grid[x, y] = new GridCell(GridType.Wall);
         }
 
-        if (fixAreas) FixAreas();
+        if (redoAreas)
+        {
+            HighestArea = 0;
+            for (var x = 0; x < SizeX; x++)
+                for (var y = 0; y < SizeY; y++)
+                    Grid[x, y].Area = 0;
+
+            AssignAreas();
+        }
+
+        if (printToConsole) PrintToConsole();
+    }
+
+    public List<IGridRoom> MakeRandomRoomList()
+    {
+        var output = new List<IGridRoom>();
+        while (output.Count() <= DesiredRoomCount)
+        {
+            uint roomLocationX = (uint)R.Next(0, SizeX);
+            uint roomLocationY = (uint)R.Next(0, SizeY);
+
+            var maxSizeX = SizeX - roomLocationX;
+            var maxSizeY = SizeY - roomLocationY;
+
+            const uint minRoomSize = 5;
+            const uint maxRoomSize = 30;
+
+            if (maxSizeX < minRoomSize || maxSizeY < minRoomSize) continue;
+
+            uint roomSizeX = (uint)R.Next(
+                (int)minRoomSize,
+                (int)(maxSizeX < maxRoomSize ? maxSizeX : maxRoomSize)
+            );
+            uint roomSizeY = (uint)R.Next(
+                (int)minRoomSize,
+                (int)(maxSizeY < maxRoomSize ? maxSizeY : maxRoomSize)
+            );
+
+            var room = new GridRoomRectangular((roomLocationX, roomLocationY), (roomSizeX, roomSizeY));
+            output.Add(room);
+        }
+
+        return output;
+    }
+
+    public void PlaceRooms(bool printToConsole = false)
+    {
+        var rooms = MakeRandomRoomList();
+        PlaceRooms(rooms, printToConsole: printToConsole);
+    }
+
+    public void PlaceRooms(List<IGridRoom> rooms, bool printToConsole = false)
+    {
+        foreach (var room in rooms)
+            Grid = room.Apply(Grid);
 
         if (printToConsole)
         {
-            Console.WriteLine(">>> Applied rooms:");
-            PrintToConsole(printWithArea);
+            Console.WriteLine(">>> Placed rooms:");
+            PrintToConsole();
         }
     }
 
@@ -147,7 +285,7 @@ public class GridGenerator
             if (printStepsToConsole)
             {
                 Console.WriteLine($">>> Area #{area}:");
-                PrintToConsole(printAreaMap: true);
+                PrintToConsole();
             }
 
             // Increment area counter
@@ -224,11 +362,11 @@ public class GridGenerator
         return FindCell((x, y, cell) => cell.Area == area);
     }
 
-    public GridCell? GetCell((uint, uint) position) => GetCell(Grid, position, ((uint)SizeX, (uint)SizeY));
+    public GridCell? GetCell((uint, uint) position) => GetCell(Grid, position);
 
-    public static GridCell? GetCell(GridCell[,] grid, (uint, uint) position, (uint, uint) size)
+    public static GridCell? GetCell(GridCell[,] grid, (uint, uint) position)
     {
-        if (position.Item1 < 0 || position.Item2 < 0 || position.Item1 >= size.Item1 || position.Item2 >= size.Item2) return null;
+        if (position.Item1 < 0 || position.Item2 < 0 || position.Item1 >= grid.GetUpperBound(0) || position.Item2 >= grid.GetUpperBound(1)) return null;
         else return grid[position.Item1, position.Item2];
     }
 
@@ -274,7 +412,7 @@ public class GridGenerator
         );
     }
 
-    public void PrintToConsole(bool printAreaMap = false)
+    public void PrintToConsole()
     {
         Console.OutputEncoding = Encoding.UTF8;
 
@@ -283,24 +421,25 @@ public class GridGenerator
         {
             for (var y = 0; y < SizeY; y++)
             {
-                if (!printAreaMap)
+                var cell = Grid[x, y];
+                switch (cell.Type)
                 {
-                    output += Grid[x, y].MakeConsoleString(2);
-                }
-                else
-                {
-                    var cell = Grid[x, y];
-                    if (cell.Type != GridType.Floor)
-                    {
-                        output += cell.MakeConsoleString(2);
-                    }
-                    else
-                    {
+                    case GridType.Floor:
                         var area = cell.Area;
-                        if (area == 0) output += "AA"; // AREA isn't properly tracked!!!
-                        else if (area < 10) output += $"{area}{area}";
-                        else output += $"{area}";
-                    }
+                        if (area == 0)
+                            output += "  ";
+                        else if (area < 10)
+                            output += $"0{area}";
+                        else
+                            output += $"{area}";
+                        break;
+                    default:
+                    case GridType.Wall:
+                        if (cell.CanBeDoor)
+                            output += $"{GridTypeImpl.GetPossibleDoorChar()}{GridTypeImpl.GetPossibleDoorChar()}";
+                        else
+                            output += cell.MakeConsoleString(2);
+                        break;
                 }
             }
 

@@ -1,12 +1,15 @@
-﻿var gridGenerator = new GridGenerator((70, 70), printToConsole: true);
+﻿const uint SizeX = 70;
+const uint SizeY = 70;
 
-var rooms = new List<IGridRoom>() {
-    new GridRoomRectangular((10, 10), (10, 10))
-};
-gridGenerator.ApplyRooms(rooms);
-gridGenerator.PerformAutomataRepetitive();
-gridGenerator.AssignAreas();
-gridGenerator.ApplyRooms(rooms, fixAreas: true, printToConsole: true, findDoorways: true);
+var watch = System.Diagnostics.Stopwatch.StartNew();
+
+var gridGenerator = new GridGenerator((SizeX, SizeY));
+gridGenerator.Automate(printFinalResultToConsole: false);
+
+watch.Stop();
+Console.WriteLine($"Full generation took: {watch.ElapsedMilliseconds}ms!");
+
+gridGenerator.PrintToConsole();
 
 Console.WriteLine($"Highest area number: {gridGenerator.HighestArea}");
 uint largestAreaNumber = 0;
@@ -24,4 +27,4 @@ for (uint i = 1; i <= gridGenerator.HighestArea; i++)
 }
 Console.WriteLine($"Largest area is #{largestAreaNumber} with {largestAreaCount} cells!");
 
-Console.WriteLine($"Possible Door cells: {gridGenerator.FindCell((x, y, cell) => cell.Type == GridType.PossibleDoor).Count()}");
+Console.WriteLine($"Possible Door cells: {gridGenerator.FindCell((x, y, cell) => cell.CanBeDoor).Count()}");

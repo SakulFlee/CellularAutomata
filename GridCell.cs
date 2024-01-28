@@ -1,17 +1,14 @@
 public class GridCell
 {
-    public GridType Type { get; set; }
+    public GridType Type { get; set; }  // TODO: Could be boolean
     public uint Area { get; set; } = 0;
+    public bool CanBeDoor { get; set; } = false;
+
+    // TODO: Add room code
 
     public GridCell(GridType type)
     {
         Type = type;
-    }
-
-    public GridCell(GridCell gridCell)
-    {
-        Type = gridCell.Type;
-        Area = gridCell.Area;
     }
 
     public string MakeConsoleString(int size = 2)
