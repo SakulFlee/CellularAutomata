@@ -21,8 +21,8 @@ public class GridGenerator
         for (var x = 0; x < gridSize.Item1; x++)
             for (var y = 0; y < gridSize.Item2; y++)
                 Grid[x, y] = R.NextDouble() <= floorPercentage
-                    ? new GridCell(GridType.Floor)
-                    : new GridCell(GridType.Wall);
+                    ? new GridCell(isFloor: true)
+                    : new GridCell(isFloor: false);
 
         if (printToConsole)
         {
@@ -50,22 +50,22 @@ public class GridGenerator
             for (uint y = 0; y < SizeY; y++)
             {
                 // Skip floor tiles
-                if (Grid[x, y].Type == GridType.Floor) continue;
+                if (Grid[x, y].IsFloor) continue;
 
                 var cellN = GetCell((x - 1, y));
                 var cellS = GetCell((x + 1, y));
                 var cellE = GetCell((x, y + 1));
                 var cellW = GetCell((x, y - 1));
 
-                Grid[x, y].CanBeDoor = (cellN != null && cellN.Type == GridType.Floor
-                    && cellS != null && cellS.Type == GridType.Floor
-                    && cellE != null && cellE.Type != GridType.Floor
-                    && cellW != null && cellW.Type != GridType.Floor)
+                Grid[x, y].CanBeDoor = (cellN != null && cellN.IsFloor
+                    && cellS != null && cellS.IsFloor
+                    && cellE != null && !cellE.IsFloor
+                    && cellW != null && !cellW.IsFloor)
                     ||
-                    (cellE != null && cellE.Type == GridType.Floor
-                    && cellW != null && cellW.Type == GridType.Floor
-                    && cellN != null && cellN.Type != GridType.Floor
-                    && cellS != null && cellS.Type != GridType.Floor);
+                    (cellE != null && cellE.IsFloor
+                    && cellW != null && cellW.IsFloor
+                    && cellN != null && !cellN.IsFloor
+                    && cellS != null && !cellS.IsFloor);
             }
 
         if (printToConsole) PrintToConsole();
@@ -77,7 +77,7 @@ public class GridGenerator
             for (var x = 0; x < SizeX; x++)
                 for (var y = 0; y < SizeY; y++)
                     if (x == 0 || y == 0 || x == SizeX - 1 || y == SizeY - 1)
-                        Grid[x, y] = new GridCell(GridType.Wall);
+                        Grid[x, y] = new GridCell(isFloor: false);
 
         for (uint area = 1; area <= HighestArea; area++)
         {
@@ -117,7 +117,7 @@ public class GridGenerator
 
             if (removeArea)
                 foreach (var (x, y) in cellsInArea)
-                    Grid[x, y] = new GridCell(GridType.Wall);
+                    Grid[x, y] = new GridCell(isFloor: false);
         }
 
         if (redoAreas)
@@ -185,7 +185,7 @@ public class GridGenerator
 
     public void FixAreas()
     {
-        var floorsWithoutAreaList = FindCell((x, y, cell) => cell.Type == GridType.Floor && cell.Area == 0);
+        var floorsWithoutAreaList = FindCell((x, y, cell) => cell.IsFloor && cell.Area == 0);
         var floorsWithoutArea = new Queue<(uint, uint)>(floorsWithoutAreaList.Count());
         foreach (var a in floorsWithoutAreaList) floorsWithoutArea.Enqueue(a);
 
@@ -251,9 +251,9 @@ public class GridGenerator
 
         for (uint x = 0; x < SizeX; x++)
             for (uint y = 0; y < SizeY; y++)
-                outputGrid[x, y] = CountNeighboursOfType((x, y), GridType.Wall, countNull: true) < MinimumNeighbourWallsForFloor
-                    ? new GridCell(GridType.Floor)
-                    : new GridCell(GridType.Wall);
+                outputGrid[x, y] = CountNeighboursOfType((x, y), isFloor: false, countNull: true) < MinimumNeighbourWallsForFloor
+                    ? new GridCell(isFloor: true)
+                    : new GridCell(isFloor: false);
 
         Grid = outputGrid;
     }
@@ -277,7 +277,7 @@ public class GridGenerator
 
             // If the cell at the current location is invalid, not a floor or already has an area assigned, skip it.
             var cell = GetCell(((uint)currentX, (uint)currentY));
-            if (cell == null || cell.Type != GridType.Floor || cell.HasAreaData()) continue;
+            if (cell == null || !cell.IsFloor || cell.HasAreaData()) continue;
 
             // Cell must be a floor AND in an area we haven't been in yet
             AssignAreaNeighboursAndSelf(((uint)currentX, (uint)currentY), area);
@@ -307,33 +307,33 @@ public class GridGenerator
         if (cellSelf.HasAreaData()) return;
 
         // Skip non-floor cells
-        if (cellSelf.Type != GridType.Floor) return;
+        if (!cellSelf.IsFloor) return;
 
         Grid[position.Item1, position.Item2].Area = area;
 
         var cellN = GetCell((position.Item1 - 1, position.Item2));
-        if (cellN != null && cellN.Type == GridType.Floor)
+        if (cellN != null && cellN.IsFloor)
         {
             // Grid[position.Item1 - 1, position.Item2].Area = area;
             AssignAreaNeighboursAndSelf((position.Item1 - 1, position.Item2), area);
         }
 
         var cellS = GetCell((position.Item1 + 1, position.Item2));
-        if (cellS != null && cellS.Type == GridType.Floor)
+        if (cellS != null && cellS.IsFloor)
         {
             // Grid[position.Item1 + 1, position.Item2].Area = area;
             AssignAreaNeighboursAndSelf((position.Item1 + 1, position.Item2), area);
         }
 
         var cellE = GetCell((position.Item1, position.Item2 - 1));
-        if (cellE != null && cellE.Type == GridType.Floor)
+        if (cellE != null && cellE.IsFloor)
         {
             // Grid[position.Item1, position.Item2 - 1].Area = area;
             AssignAreaNeighboursAndSelf((position.Item1, position.Item2 - 1), area);
         }
 
         var cellW = GetCell((position.Item1, position.Item2 + 1));
-        if (cellW != null && cellW.Type == GridType.Floor)
+        if (cellW != null && cellW.IsFloor)
         {
             // Grid[position.Item1, position.Item2 + 1].Area = area;
             AssignAreaNeighboursAndSelf((position.Item1, position.Item2 + 1), area);
@@ -352,9 +352,9 @@ public class GridGenerator
         return output;
     }
 
-    public List<(uint, uint)> FindCellOfType(GridType type)
+    public List<(uint, uint)> FindCellOfType(bool isFloor)
     {
-        return FindCell((x, y, cell) => cell.Type == type);
+        return FindCell((x, y, cell) => cell.IsFloor == isFloor);
     }
 
     public List<(uint, uint)> FindCellOfArea(uint area)
@@ -370,7 +370,7 @@ public class GridGenerator
         else return grid[position.Item1, position.Item2];
     }
 
-    public uint CountNeighboursOfType((uint, uint) position, GridType type, bool countNull = true)
+    public uint CountNeighboursOfType((uint, uint) position, bool isFloor, bool countNull = true)
     {
         // Cardinals
         var valueN = GetCell((position.Item1 - 1, position.Item2));
@@ -387,28 +387,28 @@ public class GridGenerator
         return (uint)(0
             + (valueN == null
                 ? countNull ? 1 : 0
-                : valueN.Type == type ? 1 : 0)
+                : valueN.IsFloor == isFloor ? 1 : 0)
             + (valueS == null
                 ? countNull ? 1 : 0
-                : valueS.Type == type ? 1 : 0)
+                : valueS.IsFloor == isFloor ? 1 : 0)
             + (valueE == null
                 ? countNull ? 1 : 0
-                : valueE.Type == type ? 1 : 0)
+                : valueE.IsFloor == isFloor ? 1 : 0)
             + (valueW == null
                 ? countNull ? 1 : 0
-                : valueW.Type == type ? 1 : 0)
+                : valueW.IsFloor == isFloor ? 1 : 0)
             + (valueNE == null
                 ? countNull ? 1 : 0
-                : valueNE.Type == type ? 1 : 0)
+                : valueNE.IsFloor == isFloor ? 1 : 0)
             + (valueSE == null
                 ? countNull ? 1 : 0
-                : valueSE.Type == type ? 1 : 0)
+                : valueSE.IsFloor == isFloor ? 1 : 0)
             + (valueNW == null
                 ? countNull ? 1 : 0
-                : valueNW.Type == type ? 1 : 0)
+                : valueNW.IsFloor == isFloor ? 1 : 0)
             + (valueSW == null
                 ? countNull ? 1 : 0
-                : valueSW.Type == type ? 1 : 0)
+                : valueSW.IsFloor == isFloor ? 1 : 0)
         );
     }
 
@@ -420,28 +420,7 @@ public class GridGenerator
         for (var x = 0; x < SizeX; x++)
         {
             for (var y = 0; y < SizeY; y++)
-            {
-                var cell = Grid[x, y];
-                switch (cell.Type)
-                {
-                    case GridType.Floor:
-                        var area = cell.Area;
-                        if (area == 0)
-                            output += "  ";
-                        else if (area < 10)
-                            output += $"0{area}";
-                        else
-                            output += $"{area}";
-                        break;
-                    default:
-                    case GridType.Wall:
-                        if (cell.CanBeDoor)
-                            output += $"{GridTypeImpl.GetPossibleDoorChar()}{GridTypeImpl.GetPossibleDoorChar()}";
-                        else
-                            output += cell.MakeConsoleString(2);
-                        break;
-                }
-            }
+                output += Grid[x, y].GetCellString();
 
             output += "\n";
         }

@@ -1,26 +1,28 @@
 public class GridCell
 {
-    public GridType Type { get; set; }  // TODO: Could be boolean
+    public bool IsFloor { get; set; }
     public uint Area { get; set; } = 0;
     public bool CanBeDoor { get; set; } = false;
 
     // TODO: Add room code
 
-    public GridCell(GridType type)
+    public GridCell(bool isFloor)
     {
-        Type = type;
+        IsFloor = isFloor;
     }
 
-    public string MakeConsoleString(int size = 2)
+    public string GetCellString()
     {
-        var cellChar = Type.GetChar();
+        if (!IsFloor)
+            if (CanBeDoor)
+                return "▒▒";
+            else
+                return "██";
 
-        var output = "";
+        if (Area < 10)
+            return $"0{Area}";
 
-        for (var i = 0; i < size; i++)
-            output += cellChar;
-
-        return output;
+        return $"{Area}";
     }
 
     public bool HasAreaData()
@@ -30,6 +32,6 @@ public class GridCell
 
     public override string ToString()
     {
-        return $"GridCell [Type = {Type}, Area = {Area}]";
+        return $"GridCell [is Floor = {IsFloor}, Area = {Area}, can be Door = {CanBeDoor}]";
     }
 }

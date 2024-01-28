@@ -25,10 +25,10 @@ public interface IGridRoom
 
                 // Set wall to edge tiles
                 if (x == 0 || y == 0 || x == GetMaxSize().Item1 - 1 || y == GetMaxSize().Item2 - 1)
-                    grid[actualX, actualY].Type = GridType.Wall;
+                    grid[actualX, actualY].IsFloor = false;
                 // Not on an edge, so floor
                 else
-                    grid[actualX, actualY].Type = GridType.Floor;
+                    grid[actualX, actualY].IsFloor = true;
             }
 
         return grid;
