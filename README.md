@@ -1,4 +1,5 @@
 # Cellular Automata (/Automaton) - Dungeon Generation
+[![.NET](https://github.com/SakulFlee/CellularAutomata/actions/workflows/dotnet.yml/badge.svg)](https://github.com/SakulFlee/CellularAutomata/actions/workflows/dotnet.yml)
 
 This repository is an implementation of [Cellular Automaton](https://en.wikipedia.org/wiki/Cellular_automaton) and added on-top some retaining, room placement and area/room labelling functions.
 
